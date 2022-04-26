@@ -1,0 +1,10 @@
+repos:
+-   repo: local
+    hooks:
+    -   id: flake8
+        name: flake8
+        description: flake8 checker
+        entry: flake8
+        args: ["--config=setup.cfg", "./postgres_to_es"]
+        language: python
+        types: [python]

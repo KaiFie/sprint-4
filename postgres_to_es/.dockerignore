@@ -1,0 +1,7 @@
+.env
+.env.db
+state.json
+Dockerfile
+.pytest_cache
+__pycache__/
+tests/

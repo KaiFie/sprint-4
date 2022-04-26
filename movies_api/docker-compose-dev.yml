@@ -1,0 +1,99 @@
+version: '2'
+
+services:
+  redis:
+    image: docker.io/bitnami/redis:6.2
+    environment:
+      # ALLOW_EMPTY_PASSWORD is recommended only for development.
+      - ALLOW_EMPTY_PASSWORD=yes
+      - REDIS_DISABLE_COMMANDS=FLUSHDB,FLUSHALL
+    ports:
+      - '6379:6379'
+    volumes:
+      - 'redis_data:/bitnami/redis/data'
+
+  es01:
+    image: elasticsearch:7.17.1
+    environment:
+      - node.name=es01
+      - discovery.type=single-node
+      - bootstrap.memory_lock=true
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+    volumes:
+      - data_es01:/usr/share/elasticsearch/data
+    ports:
+      - 9200:9200
+      - 9300:9300
+
+  kibana:
+    image: kibana:7.17.1
+    environment:
+      SERVER_NAME: kibana.example.org
+      ELASTICSEARCH_HOSTS: '["http://es01:9200"]'
+    ports:
+      - "5601:5601"
+
+  db:
+    image: postgres:13-alpine
+    volumes:
+      - postgres_data:/var/lib/postgresql/data/
+    env_file:
+      - ./.env.db
+
+  movies_admin:
+    image: kamyanskiy/movies_admin:latest
+    volumes:
+      - static_volume:/usr/src/movies_admin/staticfiles
+    env_file:
+      - ./.env.movies_admin
+    depends_on:
+      - db
+
+  nginx:
+    image: kamyanskiy/nginx:latest
+    volumes:
+      - static_volume:/usr/src/movies_admin/staticfiles
+    depends_on:
+      - movies_admin
+      - movies_api
+    ports:
+      - "80:80"
+
+  sqlite_to_pg:
+    image: docker.io/kamyanskiy/sqlite_to_postgres:latest
+    env_file:
+      - ./.env.sqlite_to_postgres
+    depends_on:
+      - db
+      - movies_admin
+
+  postgres_to_es: # ETL service
+    build: ../postgres_to_es/  # It must be pulled repo https://github.com/kamyanskiy/postgres_to_es there
+    env_file:
+      - ./.env.postgres_to_es
+    volumes:
+      - state_data:/usr/src/postgres_to_es/
+    depends_on:
+      - db
+      - es01
+
+  movies_api: # Async API service
+    build: .
+    env_file:
+      - .env.movies_api
+    depends_on:
+      - redis
+      - es01
+    ports:
+      - 8000:8000
+
+volumes:
+  static_volume:
+  postgres_data:
+  data_es01:
+  state_data:
+  redis_data:

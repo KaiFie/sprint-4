@@ -1,0 +1,29 @@
+[tool.poetry]
+name = "movies_api"
+version = "0.1.0"
+description = ""
+authors = [
+    "Alexander Kamyanskiy <alexander.kamyanskiy@yandex.ru>",
+    "Сергей Волков <sergey@example.com>",
+    "Илья Мудрицкий <illia@example.com>",
+]
+
+[tool.poetry.dependencies]
+python = "^3.10"
+aioredis = "^2.0.1"
+elasticsearch = {version = "^8.1.1", extras = ["async"]}
+fastapi = "^0.75.1"
+orjson = "^3.6.7"
+pydantic = "^1.9.0"
+uvicorn = "^0.17.6"
+uvloop = "^0.16.0"
+gunicorn = "^20.1.0"
+
+[tool.poetry.dev-dependencies]
+pytest = "^7.1.1"
+pre-commit = "^2.18.1"
+flake8 = "^4.0.1"
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
