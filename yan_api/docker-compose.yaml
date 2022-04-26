@@ -1,0 +1,32 @@
+services:
+  redis:  
+    image: redis:6.2.6
+    container_name: redis
+    volumes:
+      - redis_data:/data
+      - ./redis/redis.conf:/usr/local/etc/redis/redis.conf
+    ports:
+      - "6379:6379"
+    networks:
+      - etl-network     
+    command: redis-server /usr/local/etc/redis/redis.conf
+  api:
+    build: .
+    image: api:v1
+    container_name: api
+    ports:
+      - "8000:8000"
+    restart: always
+    networks:
+      - etl-network
+    depends_on:
+      - redis
+
+volumes:
+  redis_data:
+    driver: local
+
+networks:
+  etl-network:
+    external: true
+    driver: bridge

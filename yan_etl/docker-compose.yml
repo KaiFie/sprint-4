@@ -1,0 +1,47 @@
+version: "3.9"
+services:
+  etl:
+    container_name: etl-app
+    build:
+      context: .
+    restart: always
+    env_file:
+      - .env
+    networks:
+      - etl-network
+    depends_on:
+      - elasticsearch
+  elasticsearch:
+    container_name: elastic-serv
+    image: docker.elastic.co/elasticsearch/elasticsearch:7.15.1
+    restart: always
+    environment:
+      - node.name=elastic-serv
+      - xpack.security.enabled=false
+      - discovery.type=single-node
+    volumes:
+      - elasticsearch-data:/usr/share/elasticsearch/data
+    env_file:
+      - .env
+    ports:
+      - 9200:9200
+    networks:
+      - etl-network
+  kibana:
+    image: docker.elastic.co/kibana/kibana:7.15.1
+    environment:
+      - ELASTICSEARCH_HOSTS=["http://elastic-serv:9200"]
+    depends_on:
+      - elasticsearch
+    networks:
+      - etl-network
+    ports:
+      - 5601:5601
+
+networks:
+  etl-network:
+    external: true
+
+volumes:
+  elasticsearch-data:
+    driver: local

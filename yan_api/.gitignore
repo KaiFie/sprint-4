@@ -1,0 +1,12 @@
+venv/
+.vscode/settings.json
+state.json
+
+.env
+*.pyc
+
+redis/data/
+elastic/data
+
+.DS_Store
+.idea
